@@ -9,7 +9,7 @@ public class UserAgent {
 
     private OperatingSystem parseOperatingSystem(String userAgent) {
         String userAgentLower = userAgent.toLowerCase();
-        System.out.println("user-agent" + userAgentLower);
+//        System.out.println("user-agent" + userAgentLower);
         if (userAgentLower.contains("windows")) return OperatingSystem.WINDOWS;
         if (userAgentLower.contains("macintosh") || userAgentLower.contains("mac os")) return OperatingSystem.MACOS;
         if (userAgentLower.contains("linux")) return OperatingSystem.LINUX;

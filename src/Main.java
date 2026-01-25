@@ -2,6 +2,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -52,12 +54,12 @@ public class Main {
                     totalLines++;
 
                     String[] parts = line.split("\"");
-                    System.out.println(Arrays.toString(parts));
+//                    System.out.println(Arrays.toString(parts));
 
                     if (parts.length >= 6) {
                         // Согласно описанию составляющих, User-Agent - последний элемент в массиве
                         String userAgent = parts[parts.length - 1];
-//                        System.out.println(userAgent);
+                        // System.out.println(userAgent);
 
                         String userAgentLower = userAgent.toLowerCase();
                         if (userAgentLower.contains("googlebot")) {
@@ -69,8 +71,8 @@ public class Main {
                     }
 
                     LogEntry entry = new LogEntry(line);
-                    System.out.println(entry);
-                    System.out.println("---------");
+//                    System.out.println(entry);
+//                    System.out.println("---------");
                     stats.addEntry(entry);
                 }
                 reader.close();
@@ -93,7 +95,16 @@ public class Main {
             System.out.println("Доля Googlebot: " + Math.round(googleShare * 100 * 100.00) / 100.00 + "%");
             System.out.println();
 
-            System.out.println("Average traffic per hour: " + stats.getTrafficRate() + " bytes/hour");
+            System.out.println("Средний объём трафика сайта за час: " + stats.getTrafficRate() + " байт/час" + "\n");
+
+            // Получение списка всех страниц
+            List<String> pages = stats.getAllVisitedPages();
+            System.out.println("Все посещенные страницы: " + pages + "\n");
+
+            // Получение статистики ОС
+            HashMap<String, Double> osStats = stats.getOSUsageStatistics();
+            System.out.println("Доля операционных систем:");
+            System.out.println(osStats + "\n");
 
             // Останавливаемся после обработки
             break;
