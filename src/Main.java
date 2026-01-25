@@ -97,14 +97,22 @@ public class Main {
 
             System.out.println("Средний объём трафика сайта за час: " + stats.getTrafficRate() + " байт/час" + "\n");
 
-            // Получение списка всех страниц
-            List<String> pages = stats.getAllVisitedPages();
-            System.out.println("Все посещенные страницы: " + pages + "\n");
+            // Получение списка всех посещенных (существующих) страниц
+            List<String> existingPages = stats.getAllVisitedPages();
+            System.out.println("Все посещенные страницы: " + existingPages + "\n");
+
+            List<String> nonExistingPages = stats.getNonExistingPages();
+            System.out.println("Все несуществующие страницы: " + nonExistingPages + "\n");
 
             // Получение статистики ОС
             HashMap<String, Double> osStats = stats.getOSUsageStatistics();
             System.out.println("Доля операционных систем:");
             System.out.println(osStats + "\n");
+
+            // Получение статистики браузеров
+            HashMap<String, Double> browsersStats = stats.getBrowserStatistics();
+            System.out.println("Доля браузеров:");
+            System.out.println(browsersStats + "\n");
 
             // Останавливаемся после обработки
             break;

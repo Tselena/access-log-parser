@@ -9,11 +9,12 @@ public class Statistics {
     private int totalTraffic;
     private LocalDateTime minTime;
     private LocalDateTime maxTime;
-
-    // Новые переменные для дополнения
     private HashSet<String> pagesVisited = new HashSet<>();
     private HashMap<String, Integer> osCountMap = new HashMap<>();
     private int totalEntries = 0;
+    // Новые переменные
+    private HashSet<String> nonExistingPages = new HashSet<>();
+    private HashMap<String, Integer> browserCountMap = new HashMap<>();
 
     public Statistics() {
         this.totalTraffic = 0;
@@ -39,14 +40,22 @@ public class Statistics {
         }
 
         // Проверяем код ответа
-        if (entry.getResponseCode() == 200) {
-            // добавляем адрес страницы в множество
+        int code = entry.getResponseCode();
+        if (code == 200) {
             pagesVisited.add(entry.getRequestPath());
         }
 
+        if (code == 404) {
+            nonExistingPages.add(entry.getRequestPath());
+        }
+
         // Обновляем статистику ОС
-        String os = entry.getUserAgent().getOperatingSystem().toString(); // предполагается, что есть такой метод
+        String os = entry.getUserAgent().getOperatingSystem().toString();
         osCountMap.put(os, osCountMap.getOrDefault(os, 0) + 1);
+
+        // Обновляем статистику браузеров
+        String browser = entry.getUserAgent().getBrowser().toString();
+        browserCountMap.put(browser, browserCountMap.getOrDefault(browser, 0) + 1);
     }
 
     public double getTrafficRate() {
@@ -59,7 +68,7 @@ public class Statistics {
         return totalTraffic / hours;
     }
 
-    // Метод для получения списка всех посещенных страниц
+    // Метод для получения списка всех посещенных (существующих) страниц
     public List<String> getAllVisitedPages() {
         return new ArrayList<>(pagesVisited);
     }
@@ -75,6 +84,24 @@ public class Statistics {
             osUsage.put(os, ratio);
         }
         return osUsage;
+    }
+
+    // Метод для получения всех несуществующих страниц
+    public List<String> getNonExistingPages() {
+        return new ArrayList<>(nonExistingPages);
+    }
+
+    // Метод для получения статистики браузеров (доля каждого)
+    public HashMap<String, Double> getBrowserStatistics() {
+        HashMap<String, Double> browserUsage = new HashMap<>();
+        if (totalEntries == 0) {
+            return browserUsage; // пустой, если логов еще не было
+        }
+        for (String browser : browserCountMap.keySet()) {
+            double ratio = (double) browserCountMap.get(browser) / totalEntries;
+            browserUsage.put(browser, ratio);
+        }
+        return browserUsage;
     }
 
 }
