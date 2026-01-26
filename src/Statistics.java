@@ -1,9 +1,6 @@
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class Statistics {
     private int totalTraffic;
@@ -61,7 +58,7 @@ public class Statistics {
         browserCountMap.put(browser, browserCountMap.getOrDefault(browser, 0) + 1);
 
         // Проверяем на бота и добавляем IP в множество уникальных пользователей
-        if (entry.isBot()) {
+        if (!entry.isBot()) {
             long currentSeconds = System.currentTimeMillis() / 1000;
             String ip = entry.getIpAddress();
             if (ip != null) {
