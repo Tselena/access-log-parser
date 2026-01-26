@@ -114,6 +114,11 @@ public class Main {
             System.out.println("Доля браузеров:");
             System.out.println(browsersStats + "\n");
 
+            // Получение статистики по посещаемости
+            System.out.println("Среднее число посещений в час (реальные пользователи): " + stats.getAverageVisitsPerHour());
+            System.out.println("Среднее количество ошибочных запросов в час: " + stats.getAverageErrorsPerHour());
+            System.out.println("Средняя посещаемость одним пользователем (не ботом): " + stats.getAverageVisitsPerUser());
+
             // Останавливаемся после обработки
             break;
 

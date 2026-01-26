@@ -106,6 +106,25 @@ public class LogEntry {
         }
     }
 
+    public boolean isBot() {
+        if (userAgentString == null) {
+            return false;
+        }
+        String userAgentLower = userAgentString.toLowerCase();
+
+        // Список признаков ботов
+        String[] botIndicators = {
+                "bot", "googlebot", "yandexbot"
+        };
+
+        for (String indicator : botIndicators) {
+            if (userAgentLower.contains(indicator)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     @Override
     public String toString() {

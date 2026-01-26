@@ -11,10 +11,13 @@ public class Statistics {
     private LocalDateTime maxTime;
     private HashSet<String> pagesVisited = new HashSet<>();
     private HashMap<String, Integer> osCountMap = new HashMap<>();
-    private int totalEntries = 0;
-    // Новые переменные
     private HashSet<String> nonExistingPages = new HashSet<>();
     private HashMap<String, Integer> browserCountMap = new HashMap<>();
+    private int totalEntries = 0;
+    // Новые переменные
+    private HashSet<String> uniqueUserIPs = new HashSet<>(); // уникальные IP реальных пользователей
+    private int realUserEntries = 0; // обращений реальных пользователей (не боты)
+    private int errorCount = 0; // количество ошибок (4xx или 5xx)
 
     public Statistics() {
         this.totalTraffic = 0;
@@ -56,6 +59,22 @@ public class Statistics {
         // Обновляем статистику браузеров
         String browser = entry.getUserAgent().getBrowser().toString();
         browserCountMap.put(browser, browserCountMap.getOrDefault(browser, 0) + 1);
+
+        // Проверяем на бота и добавляем IP в множество уникальных пользователей
+        if (entry.isBot()) {
+            long currentSeconds = System.currentTimeMillis() / 1000;
+            String ip = entry.getIpAddress();
+            if (ip != null) {
+                uniqueUserIPs.add(ip);
+            }
+            // Увеличиваем счетчик обращений реальных пользователей только для неботов
+            realUserEntries++;
+        }
+
+        // Подсчитываем ошибки
+        if (code >= 400 && code < 600) {
+            errorCount++;
+        }
     }
 
     public double getTrafficRate() {
@@ -66,6 +85,13 @@ public class Statistics {
         double hours = duration.toMinutes() / 60.0;
         if (hours == 0) return totalTraffic; // если всего один час или менее
         return totalTraffic / hours;
+    }
+
+    private double getTimePeriodInHours() {
+        if (minTime == null || maxTime == null || minTime.equals(maxTime))
+            return 0;
+        Duration duration = Duration.between(minTime, maxTime);
+        return duration.toMinutes() / 60.0;
     }
 
     // Метод для получения списка всех посещенных (существующих) страниц
@@ -102,6 +128,28 @@ public class Statistics {
             browserUsage.put(browser, ratio);
         }
         return browserUsage;
+    }
+
+    // Метод для расчета среднего числа посещений сайта за час по реальным пользователям
+    public double getAverageVisitsPerHour() {
+        double hours = getTimePeriodInHours();
+        if (hours == 0) return 0;
+        return (double) realUserEntries / hours;
+    }
+
+    // Метод для расчета среднего количества ошибочных запросов в час
+    public double getAverageErrorsPerHour() {
+        double hours = getTimePeriodInHours();
+        if (hours == 0) return 0;
+        return (double) errorCount / hours;
+    }
+
+    // Метод для расчета средней посещаемости одним пользователем (не ботом)
+    public double getAverageVisitsPerUser() {
+        double hours = getTimePeriodInHours();
+        if (hours == 0 || uniqueUserIPs.isEmpty()) return 0;
+        int totalRealVisits = realUserEntries; // число обращений реальных пользователей за весь период
+        return (double) totalRealVisits / uniqueUserIPs.size();
     }
 
 }
