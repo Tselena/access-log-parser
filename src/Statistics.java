@@ -1,9 +1,11 @@
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.time.ZoneOffset;
+import java.util.*;
 
 public class Statistics {
     private int totalTraffic;
@@ -13,11 +15,13 @@ public class Statistics {
     private HashMap<String, Integer> osCountMap = new HashMap<>();
     private HashSet<String> nonExistingPages = new HashSet<>();
     private HashMap<String, Integer> browserCountMap = new HashMap<>();
-    private int totalEntries = 0;
-    // Новые переменные
     private HashSet<String> uniqueUserIPs = new HashSet<>(); // уникальные IP реальных пользователей
+    private int totalEntries = 0;
     private int realUserEntries = 0; // обращений реальных пользователей (не боты)
     private int errorCount = 0; // количество ошибок (4xx или 5xx)
+    // Новые переменные
+    private List<LogEntry> allEntries = new ArrayList<>(); // Хранить все лог-записи
+    private Map<Long, Integer> visitsPerSecond = new HashMap<>(); // Посещение по секундам
 
     public Statistics() {
         this.totalTraffic = 0;
@@ -26,6 +30,9 @@ public class Statistics {
     }
 
     public void addEntry(LogEntry entry) {
+        // записываем лог
+        allEntries.add(entry);
+
         // увеличиваем количество добавленных записей
         totalEntries++;
 
@@ -60,8 +67,12 @@ public class Statistics {
         String browser = entry.getUserAgent().getBrowser().toString();
         browserCountMap.put(browser, browserCountMap.getOrDefault(browser, 0) + 1);
 
-        // Проверяем на бота и добавляем IP в множество уникальных пользователей
-        if (entry.isBot()) {
+        // Проверяем на бота, учитываем посещение по времени и добавляем IP в множество уникальных пользователей
+        if (!entry.isBot()) {
+            long epochSecond = entry.getDateTime().toEpochSecond(ZoneOffset.UTC);
+            // Обновляем количество посещений в текущую секунду
+            visitsPerSecond.put(epochSecond, visitsPerSecond.getOrDefault(epochSecond, 0) + 1);
+
             long currentSeconds = System.currentTimeMillis() / 1000;
             String ip = entry.getIpAddress();
             if (ip != null) {
@@ -150,6 +161,82 @@ public class Statistics {
         if (hours == 0 || uniqueUserIPs.isEmpty()) return 0;
         int totalRealVisits = realUserEntries; // число обращений реальных пользователей за весь период
         return (double) totalRealVisits / uniqueUserIPs.size();
+    }
+
+    // Метод для расчёта пиковой посещаемости сайта (в секунду)
+    public int getPeakVisitsPerSecond() {
+        Map<Long, Integer> visitsPerSecond = new HashMap<>();
+
+        for (LogEntry entry : allEntries) {
+            long timestamp = entry.getDateTime().getSecond();
+            long secondKey = timestamp;
+
+            visitsPerSecond.put(secondKey, visitsPerSecond.getOrDefault(timestamp, 0) + 1);
+        }
+
+        int maxCount = 0;
+        for (int count : visitsPerSecond.values()) {
+            if (count > maxCount) {
+                maxCount = count;
+            }
+        }
+
+        printVisitsPerSecond(visitsPerSecond);
+        return maxCount;
+    }
+
+    // Вспомогательный метод для вывода содержимого Map<Long, Integer> visitsPerSecond
+    public void printVisitsPerSecond(Map<Long, Integer> visitsPerSecond) {
+        for (Map.Entry<Long, Integer> entry : visitsPerSecond.entrySet()) {
+            System.out.println("Секунда: " + entry.getKey() + ", посещений: " + entry.getValue());
+        }
+    }
+
+    // Метод, возвращающий список сайтов, со страниц которых есть ссылки на текущий сайт
+    public Set<String> getRefererDomains() {
+        Set<String> domains = new HashSet<>();
+        for (LogEntry entry : allEntries) {
+            String referer = entry.getReferer();
+            if (referer != null && !referer.isEmpty()) {
+                try {
+                    // Декодируем реферер
+                    String decodedRefferer = URLDecoder.decode(referer, StandardCharsets.UTF_8);
+
+                    // Проверяем наличие протокола
+                    if (!decodedRefferer.matches("^[a-zA-Z]+://.*")) {
+                        decodedRefferer = "http://" + decodedRefferer;
+                    }
+                    URL url = new URL(decodedRefferer);
+                    String host = url.getHost().trim();
+                    if (!host.isEmpty()) {
+                        domains.add(host);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return domains;
+    }
+
+    // Метод для расчёта максимальной посещаемости одним пользователем
+    public int getMaxVisitsPerUser() {
+        Map<String, Integer> userVisitCounts = new HashMap<>();
+        for (LogEntry entry : allEntries) {
+            if (!entry.isBot()) {
+                String ip = entry.getIpAddress();
+                if (ip != null) {
+                    userVisitCounts.put(ip, userVisitCounts.getOrDefault(ip, 0) + 1);
+                }
+            }
+        }
+        int maxVisits = 0;
+        for (int count : userVisitCounts.values()) {
+            if (count > maxVisits) {
+                maxVisits = count;
+            }
+        }
+        return maxVisits;
     }
 
 }

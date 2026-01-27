@@ -1,10 +1,7 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -73,6 +70,13 @@ public class Main {
                     LogEntry entry = new LogEntry(line);
 //                    System.out.println(entry);
 //                    System.out.println("---------");
+//                    System.out.println("ipAddress " + entry.getIpAddress());
+//                    System.out.println("dateTime " + entry.getDateTime());
+//                    System.out.println("method " + entry.getMethod());
+//                    System.out.println("requestPath " + entry.getRequestPath());
+//                    System.out.println("responseCode " + entry.getResponseCode());
+//                    System.out.println("responseSize " + entry.getResponseSize());
+//                    System.out.println("referer " + entry.getReferer());
                     stats.addEntry(entry);
                 }
                 reader.close();
@@ -99,10 +103,10 @@ public class Main {
 
             // Получение списка всех посещенных (существующих) страниц
             List<String> existingPages = stats.getAllVisitedPages();
-            System.out.println("Все посещенные страницы: " + existingPages + "\n");
-
+//            System.out.println("Все посещенные страницы: " + existingPages + "\n");
+//
             List<String> nonExistingPages = stats.getNonExistingPages();
-            System.out.println("Все несуществующие страницы: " + nonExistingPages + "\n");
+//            System.out.println("Все несуществующие страницы: " + nonExistingPages + "\n");
 
             // Получение статистики ОС
             HashMap<String, Double> osStats = stats.getOSUsageStatistics();
@@ -117,7 +121,11 @@ public class Main {
             // Получение статистики по посещаемости
             System.out.println("Среднее число посещений в час (реальные пользователи): " + stats.getAverageVisitsPerHour());
             System.out.println("Среднее количество ошибочных запросов в час: " + stats.getAverageErrorsPerHour());
-            System.out.println("Средняя посещаемость одним пользователем (не ботом): " + stats.getAverageVisitsPerUser());
+            System.out.println("Средняя посещаемость одним пользователем (не ботом): " + stats.getAverageVisitsPerUser() + "\n");
+
+            System.out.println("Максимальная посещаемость за одну секунду (не ботом): " + stats.getPeakVisitsPerSecond());
+            System.out.println("Список доменов сайтов, со страниц которых есть ссылки: " + stats.getRefererDomains());
+            System.out.println("Максимальное число визитов одним пользователем: " + stats.getMaxVisitsPerUser());
 
             // Останавливаемся после обработки
             break;

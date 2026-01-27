@@ -1,6 +1,7 @@
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.List;
 
 public class LogEntry {
     private final String ipAddress;
@@ -12,8 +13,6 @@ public class LogEntry {
     private final String referer;
     private final String userAgentString;
     private final UserAgent userAgent;
-
-
 
 
     //Getters
@@ -89,7 +88,7 @@ public class LogEntry {
         this.responseSize = responseSize;
 
         // referer
-        this.referer = (parts.length > 2) ? parts[2] : "-";
+        this.referer = (parts.length > 2) ? parts[3] : "-";
 
         // userAgent строка
         this.userAgentString = parts[parts.length - 1];
